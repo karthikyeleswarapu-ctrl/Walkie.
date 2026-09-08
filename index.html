@@ -548,6 +548,8 @@
   let peer = null;
   let connections = {};     // host: peerId -> {dataConn, relayCall}
   let hostDataConn = null;  // joiner side
+  let hostHeartbeatTimer = null; // host: prunes peers that vanished without a clean close
+  let joinerHeartbeatTimer = null; // joiner: tells host it's still here
   let localStream = null;
   let outgoingCalls = [];   // calls currently sending my mic audio
   let txTimer = null, rxTimer = null;
@@ -609,6 +611,19 @@
     if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
     outgoingCalls.forEach(c=>{ try{c.close();}catch(e){} });
     outgoingCalls = [];
+    clearInterval(hostHeartbeatTimer); hostHeartbeatTimer = null;
+    clearInterval(joinerHeartbeatTimer); joinerHeartbeatTimer = null;
+    // tell the other side we're leaving instead of just vanishing, so their
+    // member count updates immediately rather than waiting on a transport close
+    try{
+      if(isHost){
+        Object.values(connections).forEach(c=>{
+          try{ c.dataConn.send({type:'room-closed'}); }catch(e){}
+        });
+      } else if(hostDataConn && hostDataConn.open){
+        hostDataConn.send({type:'leave'});
+      }
+    }catch(e){}
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
     connections = {};
     hostDataConn = null;
@@ -638,13 +653,20 @@
     });
 
     peer.on('connection', conn=>{
-      connections[conn.peer] = { dataConn: conn, relayCall: null };
+      connections[conn.peer] = { dataConn: conn, relayCall: null, lastSeen: Date.now() };
       conn.on('open', ()=>{
         broadcastCount();
       });
+      conn.on('data', data=>{
+        if(!connections[conn.peer]) return;
+        if(data && data.type === 'ping'){
+          connections[conn.peer].lastSeen = Date.now();
+        } else if(data && data.type === 'leave'){
+          removePeer(conn.peer);
+        }
+      });
       conn.on('close', ()=>{
-        delete connections[conn.peer];
-        broadcastCount();
+        removePeer(conn.peer);
       });
     });
 
@@ -672,6 +694,23 @@
         });
       });
     });
+
+    // safety net: if a peer disappears without a clean close (crash, killed app,
+    // dropped network) prune it after a few missed heartbeats so the count stays accurate
+    hostHeartbeatTimer = setInterval(()=>{
+      const now = Date.now();
+      Object.keys(connections).forEach(pid=>{
+        if(now - connections[pid].lastSeen > 12000) removePeer(pid);
+      });
+    }, 4000);
+  }
+  function removePeer(pid){
+    const c = connections[pid];
+    if(!c) return;
+    if(c.relayCall){ try{c.relayCall.close();}catch(e){} }
+    try{ c.dataConn.close(); }catch(e){}
+    delete connections[pid];
+    broadcastCount();
   }
   function broadcastCount(){
     const n = Object.keys(connections).length + 1;
@@ -692,11 +731,23 @@
       hostDataConn.on('open', ()=>{
         setConnectedStatus(true);
         hostDataConn.send({type:'join'});
+        joinerHeartbeatTimer = setInterval(()=>{
+          try{ if(hostDataConn && hostDataConn.open) hostDataConn.send({type:'ping'}); }catch(e){}
+        }, 4000);
       });
       hostDataConn.on('data', data=>{
-        if(data && data.type === 'count') setParticipantCount(data.count);
+        if(!data) return;
+        if(data.type === 'count') setParticipantCount(data.count);
+        else if(data.type === 'room-closed'){
+          setConnectedStatus(false);
+          clearInterval(joinerHeartbeatTimer); joinerHeartbeatTimer = null;
+          toast('Room closed — the host left');
+        }
       });
-      hostDataConn.on('close', ()=>{ setConnectedStatus(false); });
+      hostDataConn.on('close', ()=>{
+        setConnectedStatus(false);
+        clearInterval(joinerHeartbeatTimer); joinerHeartbeatTimer = null;
+      });
     });
 
     peer.on('error', (err)=>{
@@ -833,7 +884,7 @@
     showScreen('screen-landing');
   });
 
-  window.addEventListener('beforeunload', ()=>{ if(peer) peer.destroy(); });
+  window.addEventListener('beforeunload', ()=>{ if(peer) cleanupPeer(); });
 })();
 </script>
 </body>
