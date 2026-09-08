@@ -69,6 +69,7 @@
     display:flex;align-items:center;justify-content:center;
     cursor:pointer;
     margin-bottom:8px;
+    flex-shrink:0;
   }
   .backbtn svg{width:20px;height:20px;}
   .backbtn:active{background:#23262e;}
@@ -100,6 +101,46 @@
     color:var(--muted);
     letter-spacing:.2px;
     margin:0;
+  }
+
+  /* NICKNAME SCREEN */
+  .nick-screen-inner{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    flex:1;
+    padding-top:20px;
+  }
+  .nick-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin:0 0 10px 0;
+    align-self:flex-start;
+    width:100%;
+  }
+  .nick-input{
+    width:100%;
+    background:var(--panel);
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:18px 20px;
+    font-size:18px;
+    font-weight:700;
+    color:#fff;
+    outline:none;
+    letter-spacing:.5px;
+    transition:border-color .15s;
+  }
+  .nick-input:focus{border-color:var(--orange);}
+  .nick-input::placeholder{color:var(--muted-dim); font-weight:500;}
+  .nick-hint{
+    font-size:12.5px;
+    color:var(--muted-dim);
+    margin:10px 0 0 0;
+    align-self:flex-start;
   }
 
   .cards{margin-top:40px; display:flex; flex-direction:column; gap:16px;}
@@ -239,12 +280,36 @@
   }
   .ch-eyebrow{font-size:11px; letter-spacing:2px; color:var(--muted); font-weight:700;}
   .ch-code{font-size:20px; font-weight:800; letter-spacing:4px; margin-top:4px;}
-  .ch-users{
-    display:flex; align-items:center; gap:6px;
-    font-size:14px; color:var(--muted); font-weight:600;
-    margin-top:10px;
+
+  /* Members button (replaces old user count display) */
+  .ch-members-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    background:var(--line-soft);
+    border:none;
+    border-radius:14px;
+    padding:8px 12px;
+    cursor:pointer;
+    min-width:52px;
+    transition:background .15s;
   }
-  .ch-users svg{width:16px;height:16px;}
+  .ch-members-btn:active{background:#23262e;}
+  .ch-members-btn svg{width:18px;height:18px; color:var(--muted);}
+  .ch-members-count{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text);
+    line-height:1;
+  }
+  .ch-members-label{
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:1px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
 
   .dots{
     display:flex;
@@ -306,6 +371,156 @@
   .col.right{align-items:flex-end;}
   .pkts{color:var(--muted-dim); font-size:11px;}
 
+  /* ---- MEMBERS PANEL ---- */
+  .members-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    z-index:100;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease;
+  }
+  .members-overlay.open{
+    opacity:1;
+    pointer-events:all;
+  }
+  .members-sheet{
+    width:100%;
+    max-width:430px;
+    background:var(--panel);
+    border-radius:28px 28px 0 0;
+    border-top:1px solid var(--line);
+    padding:0 0 40px 0;
+    transform:translateY(100%);
+    transition:transform .25s cubic-bezier(.32,0,.15,1);
+    max-height:75vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .members-overlay.open .members-sheet{
+    transform:translateY(0);
+  }
+  .members-sheet-handle{
+    width:40px;height:4px;
+    border-radius:2px;
+    background:var(--line);
+    margin:12px auto 0 auto;
+    flex-shrink:0;
+  }
+  .members-sheet-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 20px 12px 20px;
+    flex-shrink:0;
+  }
+  .members-sheet-title{
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:.3px;
+  }
+  .members-close-btn{
+    width:32px;height:32px;
+    border-radius:10px;
+    background:var(--line-soft);
+    border:none;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--muted);
+  }
+  .members-close-btn svg{width:16px;height:16px;}
+  .members-list{
+    overflow-y:auto;
+    flex:1;
+    padding:4px 12px 0 12px;
+  }
+  .member-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 8px;
+    border-radius:14px;
+    transition:background .1s;
+  }
+  .member-avatar{
+    width:42px;height:42px;
+    border-radius:13px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+    font-weight:800;
+    flex-shrink:0;
+    background:var(--line-soft);
+    color:var(--muted);
+    position:relative;
+  }
+  .member-avatar.is-you{
+    background:var(--orange-dim);
+    color:var(--orange);
+    border:1.5px solid var(--orange);
+  }
+  .member-name{
+    flex:1;
+    font-size:15px;
+    font-weight:600;
+  }
+  .member-you-badge{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.8px;
+    color:var(--orange);
+    background:var(--orange-dim);
+    padding:3px 8px;
+    border-radius:6px;
+    text-transform:uppercase;
+    flex-shrink:0;
+  }
+
+  /* Speaking animation */
+  .speaking-anim{
+    display:none;
+    align-items:center;
+    gap:2.5px;
+    height:18px;
+    flex-shrink:0;
+  }
+  .speaking-anim.active{ display:flex; }
+  .speaking-anim span{
+    display:block;
+    width:3px;
+    border-radius:2px;
+    background:var(--orange);
+    animation:wavebar 1.1s ease-in-out infinite;
+  }
+  .speaking-anim span:nth-child(1){height:6px;  animation-delay:0s;}
+  .speaking-anim span:nth-child(2){height:14px; animation-delay:.12s;}
+  .speaking-anim span:nth-child(3){height:9px;  animation-delay:.24s;}
+  .speaking-anim span:nth-child(4){height:14px; animation-delay:.08s;}
+  .speaking-anim span:nth-child(5){height:6px;  animation-delay:.18s;}
+  @keyframes wavebar{
+    0%,100%{transform:scaleY(.45);}
+    50%{transform:scaleY(1);}
+  }
+
+  /* Avatar speaking pulse */
+  .member-avatar.speaking::after{
+    content:'';
+    position:absolute;
+    inset:-3px;
+    border-radius:15px;
+    border:2px solid var(--orange);
+    animation:pulse-ring 1s ease-out infinite;
+  }
+  @keyframes pulse-ring{
+    0%{opacity:1; transform:scale(1);}
+    100%{opacity:0; transform:scale(1.15);}
+  }
+
   .toast{
     position:fixed;
     bottom:24px;
@@ -320,17 +535,25 @@
     opacity:0;
     pointer-events:none;
     transition:opacity .2s ease;
-    z-index:50;
+    z-index:200;
     white-space:nowrap;
   }
   .toast.show{opacity:1;}
+
+  /* Nickname required shake */
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%,60%{transform:translateX(-6px);}
+    40%,80%{transform:translateX(6px);}
+  }
+  .shake{animation:shake .35s ease;}
 </style>
 </head>
 <body>
 
 <div class="app">
 
-  <!-- LANDING -->
+  <!-- NICKNAME / LANDING -->
   <div class="screen active" id="screen-landing">
     <div class="brand">
       <div class="logo">
@@ -343,6 +566,10 @@
       <h1 class="title">WALKIE</h1>
       <p class="subtitle">Works anywhere &middot; Any distance &middot; No login</p>
     </div>
+
+    <p class="nick-label" style="margin-top:32px;">Your nickname</p>
+    <input class="nick-input" id="nick-input" placeholder="Enter a name…" maxlength="20" autocomplete="off" spellcheck="false">
+    <p class="nick-hint">Others in the room will see this</p>
 
     <div class="cards">
       <div class="card accent" id="btn-goto-create">
@@ -446,17 +673,23 @@
   <!-- CHANNEL -->
   <div class="screen" id="screen-channel">
     <div class="ch-header">
-      <button class="backbtn" id="btn-back-channel">
+      <button class="backbtn" id="btn-back-channel" style="margin-bottom:0;">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <div class="ch-title-wrap">
         <div class="ch-eyebrow">CHANNEL</div>
         <div class="ch-code" id="ch-code">------</div>
       </div>
-      <div class="ch-users">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="10" cy="7" r="4"/></svg>
-        <span id="ch-usercount">1</span>
-      </div>
+      <button class="ch-members-btn" id="ch-members-btn" title="Show members">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/>
+          <circle cx="10" cy="7" r="4"/>
+          <path d="M21 20v-1a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="ch-members-count" id="ch-usercount">1</span>
+        <span class="ch-members-label">members</span>
+      </button>
     </div>
 
     <div class="dots" id="ch-dots">
@@ -472,7 +705,7 @@
           <line x1="4" y1="4" x2="20" y2="20"/>
         </svg>
       </div>
-      <div class="talk-label">HOLD TO TALK</div>
+      <div class="talk-label" id="talk-label">HOLD TO TALK</div>
     </div>
 
     <div class="ch-status">
@@ -481,12 +714,28 @@
         <span class="pkts" id="ch-tx">TX: 0 pkts</span>
       </div>
       <div class="col right">
-        <div class="row"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="10" cy="7" r="4"/></svg><span id="ch-userlabel">1 USER</span></div>
+        <div class="row">
+          <span id="ch-nickname-label" style="font-size:12px;font-weight:600;color:var(--orange);"></span>
+        </div>
         <span class="pkts" id="ch-rx">RX: 0 pkts</span>
       </div>
     </div>
   </div>
 
+</div>
+
+<!-- MEMBERS OVERLAY -->
+<div class="members-overlay" id="members-overlay">
+  <div class="members-sheet" id="members-sheet">
+    <div class="members-sheet-handle"></div>
+    <div class="members-sheet-header">
+      <span class="members-sheet-title">In this room <span id="members-count-label" style="color:var(--muted);font-weight:500;font-size:14px;"></span></span>
+      <button class="members-close-btn" id="members-close-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="members-list" id="members-list"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -495,7 +744,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
 <script>
 (function(){
-  // ---------- inline app icon / manifest / service worker (single-file, no external assets) ----------
   var ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="22" fill="#0a0b0f" stroke="#f2701c" stroke-width="4"/><path d="M25 42a28 28 0 0 1 50 0" fill="none" stroke="#f2701c" stroke-width="5" stroke-linecap="round"/><path d="M35 50a18 18 0 0 1 30 0" fill="none" stroke="#f2701c" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="62" r="5" fill="#f2701c"/></svg>';
   var ICON_HREF = 'data:image/svg+xml;base64,' + btoa(ICON_SVG);
   document.getElementById('icon-link').href = ICON_HREF;
@@ -532,7 +780,7 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(t._timer);
-    t._timer = setTimeout(()=>t.classList.remove('show'), 1600);
+    t._timer = setTimeout(()=>t.classList.remove('show'), 1800);
   }
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   function generateCode(){
@@ -542,19 +790,54 @@
   }
   function spacedCode(code){ return code.split('').join(' '); }
 
+  // avatar color palette
+  const AVATAR_COLORS = [
+    {bg:'#2a1f3a',fg:'#c084fc'},
+    {bg:'#0f2d20',fg:'#4ade80'},
+    {bg:'#1a1f3a',fg:'#60a5fa'},
+    {bg:'#3a1f1f',fg:'#f87171'},
+    {bg:'#3a2d10',fg:'#fbbf24'},
+    {bg:'#1a2e3a',fg:'#38bdf8'},
+    {bg:'#2e1a3a',fg:'#e879f9'},
+    {bg:'#1a3a2e',fg:'#34d399'},
+  ];
+  function colorForName(name){
+    let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))&0xffffffff;
+    return AVATAR_COLORS[Math.abs(h)%AVATAR_COLORS.length];
+  }
+  function avatarInitial(name){ return (name||'?')[0].toUpperCase(); }
+
   // ---------- state ----------
+  let myNickname = '';
   let roomCode = null;
   let isHost = false;
   let peer = null;
-  let connections = {};     // host: peerId -> {dataConn, relayCall}
-  let hostDataConn = null;  // joiner side
-  let hostHeartbeatTimer = null; // host: prunes peers that vanished without a clean close
-  let joinerHeartbeatTimer = null; // joiner: tells host it's still here
+  let connections = {};
+  let hostDataConn = null;
+  let hostHeartbeatTimer = null;
+  let joinerHeartbeatTimer = null;
+
+  // members: Map peerId -> { nickname, speaking }
+  // for host, peerId is the actual peer id; 'me' is used for local entry
+  let members = {};   // { [peerId]: { nickname, speaking } }
+
+  const ICE_CONFIG = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:freestun.net:3478' },
+      { urls: 'turn:freestun.net:3478', username: 'free', credential: 'free' },
+      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+    ]
+  };
   let localStream = null;
-  let outgoingCalls = [];   // calls currently sending my mic audio
+  let outgoingCalls = [];
   let txTimer = null, rxTimer = null;
   let txCount = 0, rxCount = 0;
-  let participantCount = 1;
+
+  // who is currently speaking (peerId or null)
+  let currentSpeakerPeerId = null;
 
   function resetCounters(){
     txCount = 0; rxCount = 0;
@@ -577,27 +860,35 @@
   }
   function stopRx(){ clearInterval(rxTimer); rxTimer=null; }
 
-  function setParticipantCount(n){
-    participantCount = n;
+  function updateMemberCount(){
+    const n = Object.keys(members).length;
     $('ch-usercount').textContent = n;
-    $('ch-userlabel').textContent = n + (n===1 ? ' USER' : ' USERS');
+    $('members-count-label').textContent = '(' + n + ')';
   }
 
   function setConnectedStatus(ok){
     $('ch-statustext').textContent = ok ? 'CONNECTED' : 'CONNECTING...';
     $('ch-statusdot').style.background = ok ? 'var(--green)' : '#6b6f78';
   }
-
   function setTalkingVisual(active){
     const btn = $('talk-btn');
-    if(active){ btn.classList.add('talking'); }
-    else { btn.classList.remove('talking'); }
+    const lbl = $('talk-label');
+    if(active){ btn.classList.add('talking'); lbl.textContent='TALKING...'; }
+    else { btn.classList.remove('talking'); lbl.textContent='HOLD TO TALK'; }
   }
-  function setReceivingVisual(active){
+  function setReceivingVisual(active, speakerNick){
     const dots = $('ch-dots');
     const btn = $('talk-btn');
-    if(active){ dots.classList.add('active'); btn.classList.add('receiving'); }
-    else { dots.classList.remove('active'); btn.classList.remove('receiving'); }
+    const lbl = $('talk-label');
+    if(active){
+      dots.classList.add('active');
+      btn.classList.add('receiving');
+      lbl.textContent = speakerNick ? speakerNick.toUpperCase() + ' SPEAKING' : 'INCOMING...';
+    } else {
+      dots.classList.remove('active');
+      btn.classList.remove('receiving');
+      lbl.textContent = 'HOLD TO TALK';
+    }
   }
 
   function playStream(stream){
@@ -606,6 +897,95 @@
     el.play().catch(()=>{});
   }
 
+  // ---- Member list management ----
+  function addMember(peerId, nickname){
+    members[peerId] = { nickname: nickname || 'Unknown', speaking: false };
+    updateMemberCount();
+    renderMemberList();
+  }
+  function removeMember(peerId){
+    delete members[peerId];
+    if(currentSpeakerPeerId === peerId) setSpeaking(null);
+    updateMemberCount();
+    renderMemberList();
+  }
+  function setSpeaking(peerId){
+    // clear old
+    Object.keys(members).forEach(id=>{ members[id].speaking = false; });
+    currentSpeakerPeerId = peerId;
+    if(peerId && members[peerId]) members[peerId].speaking = true;
+    renderMemberList();
+  }
+
+  function renderMemberList(){
+    const list = $('members-list');
+    list.innerHTML = '';
+    // me first
+    const meEntry = members['me'];
+    if(meEntry){
+      list.appendChild(makeMemberRow('me', meEntry.nickname, true, meEntry.speaking));
+    }
+    Object.keys(members).forEach(pid=>{
+      if(pid === 'me') return;
+      const m = members[pid];
+      list.appendChild(makeMemberRow(pid, m.nickname, false, m.speaking));
+    });
+  }
+
+  function makeMemberRow(peerId, nickname, isYou, isSpeaking){
+    const col = colorForName(nickname);
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.dataset.peerId = peerId;
+
+    const av = document.createElement('div');
+    av.className = 'member-avatar' + (isYou ? ' is-you' : '') + (isSpeaking ? ' speaking' : '');
+    if(!isYou){ av.style.background = col.bg; av.style.color = col.fg; }
+    av.textContent = avatarInitial(nickname);
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'member-name';
+    nameEl.textContent = nickname;
+
+    const anim = document.createElement('div');
+    anim.className = 'speaking-anim' + (isSpeaking ? ' active' : '');
+    for(let i=0;i<5;i++){
+      const s = document.createElement('span');
+      anim.appendChild(s);
+    }
+
+    const right = document.createElement('div');
+    right.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+    if(isSpeaking) right.appendChild(anim);
+    if(isYou){
+      const badge = document.createElement('div');
+      badge.className = 'member-you-badge';
+      badge.textContent = 'You';
+      right.appendChild(badge);
+    }
+
+    row.appendChild(av);
+    row.appendChild(nameEl);
+    row.appendChild(right);
+    return row;
+  }
+
+  // ---- Members panel ----
+  function openMembersPanel(){
+    renderMemberList();
+    $('members-overlay').classList.add('open');
+  }
+  function closeMembersPanel(){
+    $('members-overlay').classList.remove('open');
+  }
+  $('ch-members-btn').addEventListener('click', openMembersPanel);
+  $('members-close-btn').addEventListener('click', closeMembersPanel);
+  $('members-overlay').addEventListener('click', e=>{
+    if(e.target === $('members-overlay')) closeMembersPanel();
+  });
+
+  // ---- Peer cleanup ----
   function cleanupPeer(){
     stopTx(); stopRx();
     if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
@@ -613,36 +993,69 @@
     outgoingCalls = [];
     clearInterval(hostHeartbeatTimer); hostHeartbeatTimer = null;
     clearInterval(joinerHeartbeatTimer); joinerHeartbeatTimer = null;
-    // tell the other side we're leaving instead of just vanishing, so their
-    // member count updates immediately rather than waiting on a transport close
     try{
       if(isHost){
         Object.values(connections).forEach(c=>{
           try{ c.dataConn.send({type:'room-closed'}); }catch(e){}
         });
       } else if(hostDataConn && hostDataConn.open){
-        hostDataConn.send({type:'leave'});
+        hostDataConn.send({type:'leave', nickname: myNickname});
       }
     }catch(e){}
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
     connections = {};
     hostDataConn = null;
+    members = {};
     resetCounters();
-    setParticipantCount(1);
     setTalkingVisual(false);
-    setReceivingVisual(false);
+    setReceivingVisual(false, null);
+    setSpeaking(null);
+    closeMembersPanel();
+  }
+
+  // broadcast members list to all joiners
+  function broadcastMembers(){
+    if(!isHost) return;
+    // build list: host + all joiners
+    const list = Object.entries(connections).map(([pid, c])=>({ pid, nickname: c.nickname||'?' }));
+    // include host as well
+    const fullList = [{ pid: '__host__', nickname: members['me'] ? members['me'].nickname : myNickname }, ...list];
+    const n = fullList.length;
+    setParticipantCount(n);
+    Object.values(connections).forEach(c=>{
+      try{ c.dataConn.send({type:'members', list: fullList}); }catch(e){}
+    });
+    // update host's own members map
+    members = {};
+    members['me'] = { nickname: myNickname, speaking: false };
+    fullList.forEach(({pid, nickname})=>{
+      if(pid === '__host__') return;
+      if(!members[pid]) members[pid] = { nickname, speaking: false };
+    });
+    updateMemberCount();
+    renderMemberList();
+  }
+
+  function setParticipantCount(n){
+    $('ch-usercount').textContent = n;
+    $('members-count-label').textContent = '(' + n + ')';
   }
 
   // ---------- HOST ----------
   function initHost(code){
     setConnectedStatus(false);
-    peer = new Peer('walkie-room-' + code);
+    peer = new Peer('walkie-room-' + code, { config: ICE_CONFIG });
 
-    peer.on('open', ()=>{ setConnectedStatus(true); });
+    peer.on('open', ()=>{
+      setConnectedStatus(true);
+      members = {};
+      members['me'] = { nickname: myNickname, speaking: false };
+      updateMemberCount();
+      renderMemberList();
+    });
 
     peer.on('error', (err)=>{
       if(err.type === 'unavailable-id'){
-        // extremely rare collision, regenerate and retry
         roomCode = generateCode();
         peer.destroy();
         initHost(roomCode);
@@ -653,21 +1066,39 @@
     });
 
     peer.on('connection', conn=>{
-      connections[conn.peer] = { dataConn: conn, relayCall: null, lastSeen: Date.now() };
+      connections[conn.peer] = { dataConn: conn, relayCall: null, lastSeen: Date.now(), nickname: '?' };
       conn.on('open', ()=>{
-        broadcastCount();
+        broadcastMembers();
       });
       conn.on('data', data=>{
         if(!connections[conn.peer]) return;
-        if(data && data.type === 'ping'){
+        if(!data) return;
+        if(data.type === 'ping'){
           connections[conn.peer].lastSeen = Date.now();
-        } else if(data && data.type === 'leave'){
+        } else if(data.type === 'leave'){
           removePeer(conn.peer);
+        } else if(data.type === 'join'){
+          if(data.nickname) connections[conn.peer].nickname = data.nickname;
+          broadcastMembers();
+        } else if(data.type === 'speaking'){
+          // relay speaking state to everyone
+          const speakerNick = connections[conn.peer]?.nickname || '?';
+          Object.values(connections).forEach(c=>{
+            if(c.dataConn.peer !== conn.peer){
+              try{ c.dataConn.send({type:'speaking', pid: conn.peer, nickname: speakerNick, active: data.active}); }catch(e){}
+            }
+          });
+          // update host's UI
+          if(data.active){
+            setSpeaking(conn.peer);
+            setReceivingVisual(true, speakerNick);
+          } else {
+            setSpeaking(null);
+            setReceivingVisual(false, null);
+          }
         }
       });
-      conn.on('close', ()=>{
-        removePeer(conn.peer);
-      });
+      conn.on('close', ()=>{ removePeer(conn.peer); });
     });
 
     peer.on('call', call=>{
@@ -676,7 +1107,7 @@
       call.on('stream', stream=>{
         rxCount += 1; startRx();
         playStream(stream);
-        setReceivingVisual(true);
+        // relay to others
         Object.keys(connections).forEach(pid=>{
           if(pid !== talkerId){
             try{
@@ -687,7 +1118,6 @@
         });
       });
       call.on('close', ()=>{
-        setReceivingVisual(false);
         stopRx();
         Object.values(connections).forEach(c=>{
           if(c.relayCall){ try{c.relayCall.close();}catch(e){} c.relayCall=null; }
@@ -695,8 +1125,6 @@
       });
     });
 
-    // safety net: if a peer disappears without a clean close (crash, killed app,
-    // dropped network) prune it after a few missed heartbeats so the count stays accurate
     hostHeartbeatTimer = setInterval(()=>{
       const now = Date.now();
       Object.keys(connections).forEach(pid=>{
@@ -704,41 +1132,65 @@
       });
     }, 4000);
   }
+
   function removePeer(pid){
     const c = connections[pid];
     if(!c) return;
     if(c.relayCall){ try{c.relayCall.close();}catch(e){} }
     try{ c.dataConn.close(); }catch(e){}
     delete connections[pid];
-    broadcastCount();
-  }
-  function broadcastCount(){
-    const n = Object.keys(connections).length + 1;
-    setParticipantCount(n);
-    Object.values(connections).forEach(c=>{
-      try{ c.dataConn.send({type:'count', count:n}); }catch(e){}
-    });
+    broadcastMembers();
   }
 
   // ---------- JOINER ----------
   function initJoiner(code){
     setConnectedStatus(false);
     const hostId = 'walkie-room-' + code;
-    peer = new Peer();
+    peer = new Peer({ config: ICE_CONFIG });
 
     peer.on('open', ()=>{
       hostDataConn = peer.connect(hostId, {reliable:true});
       hostDataConn.on('open', ()=>{
         setConnectedStatus(true);
-        hostDataConn.send({type:'join'});
+        // send join with nickname
+        hostDataConn.send({type:'join', nickname: myNickname});
+        // init local member entry
+        members = {};
+        members['me'] = { nickname: myNickname, speaking: false };
+        updateMemberCount();
+        renderMemberList();
+
         joinerHeartbeatTimer = setInterval(()=>{
           try{ if(hostDataConn && hostDataConn.open) hostDataConn.send({type:'ping'}); }catch(e){}
         }, 4000);
       });
       hostDataConn.on('data', data=>{
         if(!data) return;
-        if(data.type === 'count') setParticipantCount(data.count);
-        else if(data.type === 'room-closed'){
+        if(data.type === 'members'){
+          // rebuild members map
+          const myEntry = members['me'];
+          members = {};
+          members['me'] = myEntry || { nickname: myNickname, speaking: false };
+          data.list.forEach(({pid, nickname})=>{
+            if(pid === '__host__'){
+              members[pid] = { nickname, speaking: (currentSpeakerPeerId === pid) };
+            } else if(pid !== peer.id){
+              members[pid] = { nickname, speaking: (currentSpeakerPeerId === pid) };
+            }
+          });
+          updateMemberCount();
+          renderMemberList();
+        } else if(data.type === 'count'){
+          setParticipantCount(data.count);
+        } else if(data.type === 'speaking'){
+          if(data.active){
+            setSpeaking(data.pid);
+            setReceivingVisual(true, data.nickname);
+          } else {
+            setSpeaking(null);
+            setReceivingVisual(false, null);
+          }
+        } else if(data.type === 'room-closed'){
           setConnectedStatus(false);
           clearInterval(joinerHeartbeatTimer); joinerHeartbeatTimer = null;
           toast('Room closed — the host left');
@@ -764,10 +1216,8 @@
       call.on('stream', stream=>{
         rxCount += 1; startRx();
         playStream(stream);
-        setReceivingVisual(true);
       });
       call.on('close', ()=>{
-        setReceivingVisual(false);
         stopRx();
       });
     });
@@ -784,17 +1234,44 @@
     }
     setTalkingVisual(true);
     startTx();
+    // mark me as speaking locally
+    if(members['me']) members['me'].speaking = true;
+    setSpeaking('me');
+    if($('members-overlay').classList.contains('open')) renderMemberList();
+
+    // notify others
     if(isHost){
+      // tell joiners I'm speaking
+      Object.values(connections).forEach(c=>{
+        try{ c.dataConn.send({type:'speaking', pid:'__host__', nickname: myNickname, active:true}); }catch(e){}
+      });
       Object.keys(connections).forEach(pid=>{
         try{ outgoingCalls.push(peer.call(pid, localStream)); }catch(e){}
       });
     } else if(peer && roomCode){
-      try{ outgoingCalls.push(peer.call('walkie-room-' + roomCode, localStream)); }catch(e){}
+      try{
+        if(hostDataConn && hostDataConn.open) hostDataConn.send({type:'speaking', active:true, nickname: myNickname});
+        outgoingCalls.push(peer.call('walkie-room-' + roomCode, localStream));
+        }catch(e){}
     }
   }
+
   function endTalk(){
     setTalkingVisual(false);
     stopTx();
+    // un-speaking
+    setSpeaking(null);
+    if(members['me']) members['me'].speaking = false;
+    if($('members-overlay').classList.contains('open')) renderMemberList();
+
+    if(isHost){
+      Object.values(connections).forEach(c=>{
+        try{ c.dataConn.send({type:'speaking', pid:'__host__', nickname: myNickname, active:false}); }catch(e){}
+      });
+    } else if(hostDataConn && hostDataConn.open){
+      try{ hostDataConn.send({type:'speaking', active:false, nickname: myNickname}); }catch(e){}
+    }
+
     outgoingCalls.forEach(c=>{ try{c.close();}catch(e){} });
     outgoingCalls = [];
     if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
@@ -807,13 +1284,35 @@
   talkBtn.addEventListener('touchstart', e=>{ e.preventDefault(); beginTalk(); }, {passive:false});
   talkBtn.addEventListener('touchend', e=>{ e.preventDefault(); endTalk(); }, {passive:false});
 
+  // ---------- nickname validation ----------
+  function getNickname(){
+    return $('nick-input').value.trim();
+  }
+  function requireNickname(){
+    const n = getNickname();
+    if(!n){
+      const inp = $('nick-input');
+      inp.classList.remove('shake');
+      void inp.offsetWidth;
+      inp.classList.add('shake');
+      inp.focus();
+      toast('Enter a nickname first');
+      return false;
+    }
+    myNickname = n;
+    $('ch-nickname-label').textContent = myNickname;
+    return true;
+  }
+
   // ---------- landing ----------
   $('btn-goto-create').addEventListener('click', ()=>{
+    if(!requireNickname()) return;
     roomCode = generateCode();
     $('create-code').textContent = spacedCode(roomCode);
     showScreen('screen-create');
   });
   $('btn-goto-join').addEventListener('click', ()=>{
+    if(!requireNickname()) return;
     document.querySelectorAll('#code-inputs input').forEach(inp=>{ inp.value=''; inp.classList.remove('filled'); });
     updateJoinButton();
     showScreen('screen-join');
@@ -828,7 +1327,6 @@
   $('btn-open-channel').addEventListener('click', ()=>{
     isHost = true;
     $('ch-code').textContent = spacedCode(roomCode);
-    setParticipantCount(1);
     resetCounters();
     showScreen('screen-channel');
     initHost(roomCode);
@@ -871,7 +1369,6 @@
     isHost = false;
     roomCode = code;
     $('ch-code').textContent = spacedCode(code);
-    setParticipantCount(1);
     resetCounters();
     showScreen('screen-channel');
     initJoiner(code);
